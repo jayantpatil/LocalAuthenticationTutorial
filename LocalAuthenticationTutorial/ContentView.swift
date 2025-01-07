@@ -6,16 +6,42 @@
 //
 
 import SwiftUI
+import LocalAuthentication
 
 struct ContentView: View {
+    @State private var isUnlocked = false
+    
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            if isUnlocked {
+                Text("You are authenticated!")
+            } else {
+                Text("Please authenticate yourself!")
+            }
         }
-        .padding()
+        .onAppear() { authenticate() }
+    }
+    
+    func authenticate() {
+        let context = LAContext()
+        var error: NSError?
+        
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics,
+                                     error: &error) {
+            let reason = "Please authenticate yourself to continue."
+            
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics,
+                                   localizedReason: reason) { success, authenticationError in
+                if success {
+                    print(success)
+                    isUnlocked = true
+                } else {
+                    print(authenticationError)
+                }
+            }
+        } else {
+            print("No biometric authentication available")
+        }
     }
 }
 
